@@ -45,7 +45,7 @@ def make_client_only(config):
     config = ModuleConfig(config)
     return Client(config.get_config())
 
-def make_ac_env(cfg, work_dir=None, ac_configs_path=None):
+def make_ac_env(cfg, work_dir=None, ac_configs_path=None) -> ac_env.AssettoCorsaEnv:
     """
     cfg: general configuration. This module will use the AssettoCorsa configuration (cfg.AssettoCorsa).
     work_dir: path to the working directory where the logs (telemetry) will be saved

@@ -6,9 +6,11 @@ import pickle
 from pathlib import Path
 from tqdm import tqdm
 
+import AssettoCorsaEnv.ac_env
 from discor.replay_buffer import ReplayBuffer, EnsembleBuffer
 from discor.utils import RunningMeanStats
 from AssettoCorsaEnv.data_loader import DataLoader
+import AssettoCorsaEnv
 
 import logging
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ logger.setLevel(logging.INFO)
 import time
 
 class Agent:
-    def __init__(self, env, test_env, algo, log_dir, device, num_steps=3000000,
+    def __init__(self, env: AssettoCorsaEnv.ac_env.AssettoCorsaEnv, test_env: AssettoCorsaEnv.ac_env.AssettoCorsaEnv, algo, log_dir, device, num_steps=3000000,
                  batch_size=256, memory_size=1_000_000,
                  update_interval=1, start_steps=10000, log_interval=10, checkpoint_freq=0,
                  eval_interval=5000, num_eval_episodes=5, seed=0, use_offline_buffer=False, offline_buffer_size=1_000_000,

@@ -6,7 +6,7 @@ task: AssettoCorsaGym
 seed: 0
 
 # wandb
-disable_wandb: False
+disable_wandb: True
 wandb_entity: null  # user
 wandb_project: sac
 wandb_silent: False

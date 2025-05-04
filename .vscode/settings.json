@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./assetto_corsa_gym",
+        "./algorithm/discor",
+        "C:\\Program Files (x86)\\Steam\\steamapps\\common\\assettocorsa\\apps\\python\\sensors_par"
+    ]
+}
