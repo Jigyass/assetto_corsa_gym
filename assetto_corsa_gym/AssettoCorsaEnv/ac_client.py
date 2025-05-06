@@ -57,8 +57,11 @@ class Client():
     def __init__(self, config):
         self.config = config
         self.vjoy_executed_by_server = config.vjoy_executed_by_server
-        self.server_host = config.ego_server_host_name
-        self.server_port = config.ego_server_port
+        # server = scheduler now
+        self.server_host = "localhost"
+        self.server_port = 2348
+        # self.server_host = config.ego_server_host_name
+        # self.server_port = config.ego_server_port
         self.simulation_management_server_host_name = config.simulation_management_server_host_name
         self.simulation_management_server_port = config.simulation_management_server_port
         self.state = ServerState()
@@ -125,7 +128,9 @@ class Client():
                 # Receive data from server
                 data, _ = self.socket.recvfrom(MAX_MSG_SIZE)
                 data = data.decode()
-                logger.debug(f"Got from server: {data}")
+                
+                logger.info("[CLIENT] Received from SCHED: {}".format(data))
+
                 if data == "disconnect":
                     logger.info("Server stopped the connection")
                     self.state["done"] = True
