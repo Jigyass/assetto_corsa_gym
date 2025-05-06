@@ -12,9 +12,10 @@ logger = logging.getLogger(__name__)
 MAX_MSG_SIZE = 2**18
 
 class Client(dict):
-    def __init__(self, server_socket: socket.socket, addr):
+    def __init__(self, server_socket: socket.socket, addr, pid: int = 0):
         self.server_socket = server_socket
         self.addr = addr
+        self.pid = pid
         self.new_data_avail = False
         self["steer"] = 0
         self["acc"] = -1
@@ -74,7 +75,7 @@ class EgoClient:
             logger.error(f"Error sending to server: {emsg}")
             raise TimeoutError
 
-    def setup_server_connection(self, sched_server):
+    def setup_server_connection(self, sched_server, schedule: function):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.settimeout(2)
         print(f"Scheduler. Listening to ego at host: {self.host_name} port: {self.port}")
@@ -90,9 +91,9 @@ class EgoClient:
                     break
             except socket.timeout:
                 continue
-        self.get_servers_input(sched_server)
+        self.get_servers_input(sched_server, schedule)
 
-    def get_servers_input(self, sched_server: SchedServer):
+    def get_servers_input(self, sched_server: SchedServer, schedule: function):
         if not self.socket:
             return
 
@@ -102,18 +103,19 @@ class EgoClient:
                 data, _ = self.socket.recvfrom(MAX_MSG_SIZE)
                 data = data.decode()
 
-                print("[SCHED] Received from EGO: {}".format(data))
+                # print("[SCHED] Received data from [EGO]")
 
                 if data == "disconnect":
                     print("Server stopped the connection")
-                    self.state["done"] = True
                 elif data == "identified":
                     print("Server identified")
+                else:
+                    # model switching
+                    sched_server.current_client = schedule(sched_server.clients, data)
 
                 # forward to client
-                print("[SCHED] Sending to CLIENT: {}".format(data))
+                # print("[SCHED] Sending to [CLIENT]")
                 sched_server.current_client.send_reply(data)
-                break
             except socket.timeout:
                 continue
 
@@ -124,6 +126,7 @@ class SchedServer:
         self.socket = None
         self.current_client: Client = None
         self.socket_open = False
+        self.clients: list[Client] = []
 
     def start(self, ego_client):
         self.thread = threading.Thread(target=self.start_server, args=[ego_client])
@@ -152,18 +155,21 @@ class SchedServer:
                     data, addr = self.socket.recvfrom(1024)
                     data = data.decode()
 
-                    if data == "connect":
+                    if data[:7] == "connect":
                         if self.current_client:
                             self.current_client = None
                             logger.warning("New client connected while another client was still connected. Switching to new client.")
-                        self.current_client = Client(self.socket, addr) # start with the lock acquired
+                        print(f"CLIENT PID: {data[-5:]}")
+                        self.current_client = Client(self.socket, addr, int(data[-5:])) # start with the lock acquired
+                        self.clients.append(self.current_client)
+                        # self.current_client = Client(self.socket, addr) # start with the lock acquired
                         self.current_client.send_reply("identified")
                         time.sleep(0.1) # make sure that the identified message is sent before releasing the lock
                         print("Switched to new client {}".format(self.current_client.addr))
                         self.current_client.initialized = True
-
-                    # forward to ego
-                    ego_client.reply_to_server(data)
+                    else:
+                        # forward to ego
+                        ego_client.reply_to_server(data)
                     
                 except socket.timeout:
                     continue

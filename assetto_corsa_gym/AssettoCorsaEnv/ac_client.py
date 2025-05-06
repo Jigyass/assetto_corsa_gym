@@ -100,7 +100,7 @@ class Client():
         logger.info(f"AC Client. Listening at host: {self.server_host} port: {self.server_port}")
 
         while True:
-            self.reply_to_server("connect")
+            self.reply_to_server(f"connect {os.getpid()}")
             try:
                 # Receive data from server
                 data, _ = self.socket.recvfrom(MAX_MSG_SIZE)
@@ -129,7 +129,7 @@ class Client():
                 data, _ = self.socket.recvfrom(MAX_MSG_SIZE)
                 data = data.decode()
                 
-                logger.info("[CLIENT] Received from SCHED: {}".format(data))
+                print(f"{os.getpid()}")
 
                 if data == "disconnect":
                     logger.info("Server stopped the connection")
