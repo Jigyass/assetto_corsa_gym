@@ -129,7 +129,7 @@ class Client():
                 data, _ = self.socket.recvfrom(MAX_MSG_SIZE)
                 data = data.decode()
                 
-                print(f"{os.getpid()}")
+                # print(f"{os.getpid()}")
 
                 if data == "disconnect":
                     logger.info("Server stopped the connection")

@@ -112,9 +112,10 @@ class EgoClient:
                 else:
                     # model switching
                     sched_server.current_client = schedule(sched_server.clients, data)
+                    # print(sched_server.current_client.pid)
 
-                # forward to client
                 # print("[SCHED] Sending to [CLIENT]")
+                # forward to client
                 sched_server.current_client.send_reply(data)
             except socket.timeout:
                 continue
@@ -140,7 +141,6 @@ class SchedServer:
             self.socket.close()
             self.socket_open = False
 
-
     def start_server(self, ego_client: EgoClient):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket_open = True  # Flag to indicate socket is open
@@ -159,10 +159,9 @@ class SchedServer:
                         if self.current_client:
                             self.current_client = None
                             logger.warning("New client connected while another client was still connected. Switching to new client.")
-                        print(f"CLIENT PID: {data[-5:]}")
+                        print(f"CLIENT PID: {int(data[-5:])}")
                         self.current_client = Client(self.socket, addr, int(data[-5:])) # start with the lock acquired
                         self.clients.append(self.current_client)
-                        # self.current_client = Client(self.socket, addr) # start with the lock acquired
                         self.current_client.send_reply("identified")
                         time.sleep(0.1) # make sure that the identified message is sent before releasing the lock
                         print("Switched to new client {}".format(self.current_client.addr))
